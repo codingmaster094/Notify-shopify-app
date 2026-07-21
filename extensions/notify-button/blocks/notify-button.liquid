@@ -1,0 +1,597 @@
+{% assign variant = product.selected_or_first_available_variant %}
+
+{% if variant and variant.available == false %}
+  <div class="notify-me-wrapper">
+    <button
+      id="notify-open"
+      class="notify-btn"
+
+      data-product="{{ product.id }}"
+      data-product-title="{{ product.title | escape }}"
+      data-product-handle="{{ product.handle }}"
+
+      data-product-image="{{ product.featured_image | image_url: width: 600 | prepend: 'https:' }}"
+
+      data-variant="{{ variant.id }}"
+      data-variant-title="{{ variant.title | escape }}"
+
+      data-price="{{ variant.price | money_without_currency }}"
+      data-compare-price="{{ variant.compare_at_price | money_without_currency }}"
+      data-currency="{{ shop.currency }}"
+
+      {% if customer %}
+        data-email="{{ customer.email }}"
+      {% endif %}
+    >
+      <span class="notify-icon">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="22"
+          height="22"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M12 22a2.25 2.25 0 0 0 2.24-2h-4.48A2.25 2.25 0 0 0 12 22Zm7-4H5l1.5-1.5V11a5.5 5.5 0 1 1 11 0v5.5L19 18Z"
+            fill="currentColor"
+          />
+        </svg>
+      </span>
+
+      <span class="notify-text"> Notify Me </span>
+    </button>
+  </div>
+
+  <!-- ========================= -->
+  <!-- Popup -->
+  <!-- ========================= -->
+
+  <div
+    id="notify-popup"
+    class="notify-overlay"
+  >
+    <div
+      class="notify-modal"
+    >
+      <!-- Close -->
+
+      <button
+        id="notify-close"
+        class="notify-close"
+        aria-label="Close"
+      >
+        &times;
+      </button>
+
+      <!-- Icon -->
+
+      <div class="notify-header-icon">🔔</div>
+
+      <!-- Heading -->
+
+      <h2>Back in Stock</h2>
+
+      <p>Enter your email address and we'll notify you immediately when this product becomes available.</p>
+
+      <!-- Email -->
+
+      {% if customer %}
+        <input
+          id="notify-email"
+          class="notify-input"
+          type="email"
+          value="{{ customer.email }}"
+          readonly
+        >
+
+      {% else %}
+        <input
+          id="notify-email"
+          class="notify-input"
+          type="email"
+          placeholder="Enter your email address"
+        >
+      {% endif %}
+
+      <!-- Message -->
+
+      <div
+        id="notify-message"
+        class="notify-message"
+      ></div>
+
+      <!-- Button -->
+
+      <button
+        id="notify-submit"
+        class="notify-submit"
+      >
+        Subscribe
+      </button>
+    </div>
+  </div>
+
+  <style>
+    /* =========================
+   Notify Me Button
+========================= */
+
+    .notify-me-wrapper {
+      margin-top: 20px;
+    }
+
+    .notify-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+
+      padding: 14px 26px;
+
+      border: none;
+      border-radius: 14px;
+
+      background: #111827;
+      color: #fff;
+
+      font-size: 16px;
+      font-weight: 600;
+
+      cursor: pointer;
+
+      transition: 0.35s ease;
+
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .notify-btn:hover {
+      transform: translateY(-2px);
+
+      background: #000;
+
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+    }
+
+    .notify-btn:active {
+      transform: scale(0.98);
+    }
+
+    .notify-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .notify-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .notify-text {
+      line-height: 1;
+    }
+
+    /* =========================
+   Overlay
+========================= */
+
+    .notify-overlay {
+      position: fixed;
+
+      inset: 0;
+
+      display: none;
+
+      justify-content: center;
+      align-items: center;
+
+      padding: 20px;
+
+      background: rgba(0, 0, 0, 0.55);
+
+      backdrop-filter: blur(8px);
+
+      z-index: 999999;
+    }
+
+    /* =========================
+   Popup
+========================= */
+
+    .notify-modal {
+      position: relative;
+
+      width: 100%;
+      max-width: 430px;
+
+      background: #fff;
+
+      border-radius: 20px;
+
+      padding: 35px;
+
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.22);
+
+      animation: notifyPopup 0.25s ease;
+    }
+
+    /* =========================
+   Animation
+========================= */
+
+    @keyframes notifyPopup {
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* =========================
+   Close
+========================= */
+
+    .notify-close {
+      position: absolute;
+
+      top: 16px;
+      right: 16px;
+
+      width: 38px;
+      height: 38px;
+
+      border: none;
+
+      border-radius: 50%;
+
+      background: #f4f4f4;
+
+      font-size: 24px;
+
+      cursor: pointer;
+
+      transition: 0.3s;
+    }
+
+    .notify-close:hover {
+      background: #111827;
+      color: #fff;
+    }
+
+    /* =========================
+   Bell
+========================= */
+
+    .notify-header-icon {
+      width: 70px;
+      height: 70px;
+
+      margin: auto;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 50%;
+
+      background: #eef4ff;
+
+      font-size: 34px;
+
+      margin-bottom: 22px;
+    }
+
+    /* =========================
+   Heading
+========================= */
+
+    .notify-modal h2 {
+      margin: 0;
+
+      text-align: center;
+
+      font-size: 28px;
+
+      font-weight: 700;
+
+      color: #111827;
+    }
+
+    .notify-modal p {
+      margin: 12px 0 25px;
+
+      text-align: center;
+
+      line-height: 1.7;
+
+      color: #6b7280;
+
+      font-size: 15px;
+    }
+
+    /* =========================
+   Input
+========================= */
+
+    .notify-input {
+      width: 100%;
+
+      height: 54px;
+
+      padding: 0 18px;
+
+      border: 1px solid #d1d5db;
+
+      border-radius: 12px;
+
+      font-size: 15px;
+
+      transition: 0.3s;
+
+      outline: none;
+    }
+
+    .notify-input:focus {
+      border-color: #111827;
+
+      box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.08);
+    }
+
+    /* =========================
+   Message
+========================= */
+
+    .notify-message {
+      display: none;
+
+      margin-top: 18px;
+
+      padding: 14px 18px;
+
+      border-radius: 12px;
+
+      font-size: 14px;
+
+      line-height: 1.6;
+    }
+
+    .notify-message.success {
+      display: block;
+
+      background: #ecfdf5;
+
+      color: #166534;
+
+      border: 1px solid #bbf7d0;
+    }
+
+    .notify-message.error {
+      display: block;
+
+      background: #fef2f2;
+
+      color: #991b1b;
+
+      border: 1px solid #fecaca;
+    }
+
+    /* =========================
+   Subscribe
+========================= */
+
+    .notify-submit {
+      width: 100%;
+
+      height: 54px;
+
+      margin-top: 22px;
+
+      border: none;
+
+      border-radius: 12px;
+
+      background: #111827;
+
+      color: #fff;
+
+      font-size: 16px;
+
+      font-weight: 600;
+
+      cursor: pointer;
+
+      transition: 0.3s;
+    }
+
+    .notify-submit:hover {
+      background: #000;
+    }
+
+    .notify-submit:disabled {
+      opacity: 0.7;
+
+      cursor: not-allowed;
+    }
+
+    .notify-loader {
+      width: 18px;
+      height: 18px;
+
+      border: 2px solid rgba(255, 255, 255, 0.4);
+
+      border-top: 2px solid #fff;
+
+      border-radius: 50%;
+
+      display: inline-block;
+
+      margin-right: 8px;
+
+      animation: notifySpin 0.7s linear infinite;
+
+      vertical-align: middle;
+    }
+
+    @keyframes notifySpin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* =========================
+   Mobile
+========================= */
+
+    @media (max-width: 480px) {
+      .notify-modal {
+        padding: 25px;
+      }
+
+      .notify-modal h2 {
+        font-size: 24px;
+      }
+
+      .notify-btn {
+        width: 100%;
+      }
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const popup = document.getElementById('notify-popup');
+      const openBtn = document.getElementById('notify-open');
+      const closeBtn = document.getElementById('notify-close');
+      const submitBtn = document.getElementById('notify-submit');
+      const emailInput = document.getElementById('notify-email');
+      const messageBox = document.getElementById('notify-message');
+
+      if (!openBtn) return;
+
+      function showPopup() {
+        popup.style.display = 'flex';
+        messageBox.style.display = 'none';
+        messageBox.className = 'notify-message';
+      }
+
+      function hidePopup() {
+        popup.style.display = 'none';
+
+        messageBox.style.display = 'none';
+        messageBox.className = 'notify-message';
+        messageBox.innerHTML = '';
+
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Subscribe';
+        submitBtn.style.background = '#111827';
+      }
+
+      function showMessage(type, text) {
+        messageBox.className = 'notify-message ' + type;
+        messageBox.innerHTML = text;
+        messageBox.style.display = 'block';
+      }
+
+      openBtn.addEventListener('click', showPopup);
+
+      closeBtn.addEventListener('click', hidePopup);
+
+      popup.addEventListener('click', (e) => {
+        if (e.target === popup) {
+          hidePopup();
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          hidePopup();
+        }
+      });
+
+      submitBtn.addEventListener('click', async () => {
+        const email = emailInput.value.trim();
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(email)) {
+          showMessage('error', 'Please enter a valid email address.');
+
+          return;
+        }
+
+        submitBtn.disabled = true;
+
+        submitBtn.innerHTML = `
+      <span class="notify-loader"></span>
+      Subscribing...
+    `;
+
+        try {
+          const response = await fetch('/apps/notify', {
+            method: 'POST',
+
+            headers: {
+              'Content-Type': 'application/json',
+            },
+
+            body: JSON.stringify({
+              shop: window.location.hostname,
+
+              email,
+
+              productId: openBtn.dataset.product,
+              productTitle: openBtn.dataset.productTitle,
+              productHandle: openBtn.dataset.productHandle,
+              productImage: openBtn.dataset.productImage,
+
+              variantId: openBtn.dataset.variant,
+              variantTitle: openBtn.dataset.variantTitle,
+
+              price: openBtn.dataset.price,
+              comparePrice: openBtn.dataset.comparePrice,
+              currency: openBtn.dataset.currency,
+            }),
+          });
+          const data = await response.json();
+
+          if (data.success) {
+            showMessage('success', "🎉 You're all set! We'll email you as soon as this item is back in stock.");
+
+            submitBtn.innerHTML = '✓ Subscribed';
+
+            submitBtn.style.background = '#16a34a';
+
+            setTimeout(() => {
+              hidePopup();
+            }, 2200);
+          } else {
+            showMessage('error', data.message || 'Unable to subscribe.');
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Subscribe';
+          }
+        } catch (error) {
+          console.error(error);
+
+          showMessage('error', 'Something went wrong. Please try again.');
+
+          submitBtn.disabled = false;
+
+          submitBtn.innerHTML = 'Subscribe';
+        }
+      });
+    });
+  </script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Notify Me",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

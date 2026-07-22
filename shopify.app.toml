@@ -2,7 +2,7 @@
 
 client_id = "70ff0c57be0a006283ae9b56ae259ecf"
 name = "notify-me"
-application_url = "https://example.com"
+application_url = "https://notify-shopify-app.onrender.com"
 embedded = true
 
 [build]
@@ -28,10 +28,10 @@ api_version = "2026-10"
 scopes = "read_products,write_metaobject_definitions,write_metaobjects,write_products"
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [ "https://notify-shopify-app.onrender.com/auth/login" ]
 
 [app_proxy]
-url = "https://example.com/api/notify"
+url = "https://notify-shopify-app.onrender.com/api/notify"
 subpath = "notify"
 prefix = "apps"
 

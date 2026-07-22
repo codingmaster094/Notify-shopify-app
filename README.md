@@ -75,6 +75,20 @@ This template is configured with the Shopify Dev MCP. This instructs [Cursor](ht
 
 For more information on the Shopify Dev MCP please read [the documentation](https://shopify.dev/docs/apps/build/devmcp).
 
+## Production Checklist
+
+Before deploying, make sure these environment variables are set in your host:
+
+- SHOPIFY_API_KEY
+- SHOPIFY_API_SECRET
+- SHOPIFY_APP_URL
+- SCOPES
+- DATABASE_URL
+- RESEND_API_KEY
+- NODE_ENV=production
+
+A sample env file is available in [.env.example](.env.example).
+
 ## Deployment
 
 ### Application Storage

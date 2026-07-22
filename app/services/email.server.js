@@ -1,7 +1,7 @@
 // notify-me\app\services\email.server.js
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 /**
  * Currency Symbol
@@ -187,6 +187,10 @@ You received this email because you subscribed to back in stock notifications.
  * Send Back In Stock Email
  */
 export async function sendBackInStockEmail({ to, shopSettings, product }) {
+  if (!resend) {
+    throw new Error("RESEND_API_KEY is not configured");
+  }
+
   const html = buildEmailTemplate({
     shopName: shopSettings.storeName || "My Store",
 

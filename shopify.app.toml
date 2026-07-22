@@ -1,6 +1,6 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "70ff0c57be0a006283ae9b56ae259ecf"
+client_id = "27cfdf4be64ea3d9b51541e69315576f"
 name = "notify-me"
 application_url = "https://notify-shopify-app.onrender.com"
 embedded = true

@@ -149,7 +149,7 @@ export async function sendBackInStockEmail(
   const { data, error } = await resend.emails.send({
     from: "onboarding@resend.dev",
     to: email,
-    subject: `🔥 NEW TEMPLATE - ${productTitle} Back In Stock`,
+    subject: `${productTitle} Back In Stock`,
     html,
   });
 

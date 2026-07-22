@@ -14,11 +14,11 @@ export async function loader({ request }) {
 }
 
 export async function action({ request }) {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
 
   const formData = await request.formData();
 
-  await saveShopSettings(session.shop, formData);
+  await saveShopSettings(session.shop, formData, admin);
 
   return {
     success: true,

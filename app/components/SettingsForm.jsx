@@ -35,7 +35,7 @@ export default function SettingsForm({
       title="Settings"
       subtitle="Manage your app branding and email configuration"
     >
-      <Form method="post">
+      <Form method="post" encType="multipart/form-data">
 
         <BlockStack gap="400">
 
@@ -68,6 +68,19 @@ export default function SettingsForm({
                 helpText="We'll replace this with Shopify File Upload later."
               />
 
+              <div>
+                <label style={{ display: "block", marginTop: 8, marginBottom: 6 }}>
+                  Upload logo
+                </label>
+                <input type="file" name="logo_file" accept="image/*" />
+              </div>
+
+              {logo ? (
+                <div style={{ marginTop: 8 }}>
+                  <label style={{ display: "block", marginBottom: 6 }}>Current logo</label>
+                  <img src={logo} alt="logo" style={{ maxHeight: 64 }} />
+                </div>
+              ) : null}
               <TextField
                 label="Brand Color"
                 name="primaryColor"

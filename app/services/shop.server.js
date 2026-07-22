@@ -5,6 +5,8 @@ import {
   updateShopSettings,
 } from "../models/shop-settings.server";
 
+import { graphql } from "../lib/shopify.server";
+
 /**
  * Load settings for current shop
  */
@@ -17,7 +19,7 @@ export async function loadShopSettings(shop) {
 /**
  * Save settings
  */
-export async function saveShopSettings(shop, formData) {
+export async function saveShopSettings(shop, formData, admin) {
   await ensureShopSettings(shop);
 
   const data = {
@@ -27,6 +29,45 @@ export async function saveShopSettings(shop, formData) {
     senderName: formData.get("senderName")?.trim() || "",
     senderEmail: formData.get("senderEmail")?.trim() || "",
   };
+
+  // If a file was uploaded via the form, upload it to Shopify Files using the admin client
+  const logoFile = formData.get("logo_file");
+  if (logoFile && typeof logoFile.arrayBuffer === "function" && admin) {
+    try {
+      const buffer = Buffer.from(await logoFile.arrayBuffer());
+      const base64 = buffer.toString("base64");
+
+      const mutation = `#graphql
+        mutation fileCreate($files: [FileCreateInput!]!) {
+          fileCreate(files: $files) {
+            files { id url }
+            userErrors { field message }
+          }
+        }
+      `;
+
+      const variables = {
+        files: [
+          {
+            filename: logoFile.name || "logo.png",
+            contentType: logoFile.type || "image/png",
+            content: base64,
+          },
+        ],
+      };
+
+      const result = await graphql(admin, mutation, variables);
+
+      const fileCreate = result?.fileCreate;
+      if (fileCreate?.userErrors && fileCreate.userErrors.length) {
+        console.warn("Shopify fileCreate errors:", fileCreate.userErrors);
+      } else if (fileCreate?.files && fileCreate.files.length) {
+        data.logo = fileCreate.files[0].url;
+      }
+    } catch (err) {
+      console.warn("Logo upload failed:", err);
+    }
+  }
 
   return await updateShopSettings(shop, data);
 }

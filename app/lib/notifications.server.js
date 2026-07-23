@@ -81,7 +81,7 @@ export async function sendBackInStockNotifications({
   const enabledChannels = [];
   const normalizedPhone = normalizePhoneNumber(phoneNumber);
 
-  if (sendEmail) {
+  if (sendEmail && email) {
     await sendBackInStockEmail(
       email,
       productTitle,

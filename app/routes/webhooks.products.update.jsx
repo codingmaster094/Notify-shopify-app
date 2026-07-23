@@ -44,9 +44,9 @@ export const action = async ({ request }) => {
         const notificationResult = await sendBackInStockNotifications({
           email: user.email,
           phoneNumber: user.phoneNumber,
-          sendEmail: true,
-          sendSms: !!user.phoneNumber,
-          sendWhatsApp: !!user.phoneNumber,
+          sendEmail: user.contactType !== "phone" && !!user.email,
+          sendSms: false,
+          sendWhatsApp: user.contactType === "phone" && !!user.phoneNumber,
           productTitle: user.productTitle || productTitle,
           productUrl,
           productImage: user.productImage,

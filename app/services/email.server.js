@@ -211,13 +211,26 @@ export async function sendBackInStockEmail({ to, shopSettings, product }) {
     currency: product.currency,
   });
 
-  return resend.emails.send({
-    from: shopSettings.senderEmail || "onboarding@resend.dev",
+  let fromEmail = (shopSettings.senderEmail || "").trim();
+  if (!fromEmail || /@(gmail\.com|yahoo\.com|hotmail\.com|outlook\.com|icloud\.com|aol\.com)$/i.test(fromEmail)) {
+    fromEmail = "onboarding@resend.dev";
+  }
 
+  const result = await resend.emails.send({
+    from: fromEmail,
     to,
-
     subject: `${product.productTitle} is Back in Stock 🎉`,
-
     html,
   });
+
+  if (result.error && fromEmail !== "onboarding@resend.dev") {
+    return resend.emails.send({
+      from: "onboarding@resend.dev",
+      to,
+      subject: `${product.productTitle} is Back in Stock 🎉`,
+      html,
+    });
+  }
+
+  return result;
 }

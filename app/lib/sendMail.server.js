@@ -17,6 +17,18 @@ function currencySymbol(code) {
 }
 
 
+function getValidFromEmail(senderEmail) {
+  const candidate = (senderEmail || process.env.SENDER_EMAIL || process.env.RESEND_ACCOUNT_EMAIL || process.env.RESEND_FROM || "").trim();
+  
+  // Public webmail domains cannot be used as Resend 'from' address
+  const isPublicDomain = /@(gmail\.com|yahoo\.com|hotmail\.com|outlook\.com|icloud\.com|aol\.com)$/i.test(candidate);
+  
+  if (!candidate || isPublicDomain) {
+    return "onboarding@resend.dev";
+  }
+  return candidate;
+}
+
 export async function sendBackInStockEmail(
   email,
   productTitle,
@@ -147,14 +159,28 @@ export async function sendBackInStockEmail(
   </div>
   `;
 
-  const FROM_EMAIL = senderEmail || process.env.SENDER_EMAIL || process.env.RESEND_ACCOUNT_EMAIL || process.env.RESEND_FROM || "onboarding@resend.dev";
+  let fromEmail = getValidFromEmail(senderEmail);
 
-  const { data, error } = await resend.emails.send({
-    from: FROM_EMAIL,
+  let { data, error } = await resend.emails.send({
+    from: fromEmail,
     to: email,
     subject: `${productTitle} Back In Stock`,
     html,
   });
+
+  // If custom domain fails due to unverified domain error, retry with onboarding@resend.dev
+  if (error && fromEmail !== "onboarding@resend.dev") {
+    console.warn(`Resend email with '${fromEmail}' failed (${error.message}). Retrying with 'onboarding@resend.dev'...`);
+    fromEmail = "onboarding@resend.dev";
+    const retryResult = await resend.emails.send({
+      from: fromEmail,
+      to: email,
+      subject: `${productTitle} Back In Stock`,
+      html,
+    });
+    data = retryResult.data;
+    error = retryResult.error;
+  }
 
   if (error) {
     console.error("Resend email error:", error);

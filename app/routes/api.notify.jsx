@@ -32,6 +32,9 @@ export async function action({ request }) {
       );
     }
 
+    const cleanVariantId = String(variantId).replace(/^gid:\/\/shopify\/ProductVariant\//, "").trim();
+    const cleanProductId = String(productId).replace(/^gid:\/\/shopify\/Product\//, "").trim();
+
     const normalizedEmail = (email || "").trim().toLowerCase();
     const normalizedPhoneNumber = (phoneNumber || "").trim();
     const phoneRegex = /^\+?[\d\s-]{10,15}$/;
@@ -74,7 +77,7 @@ export async function action({ request }) {
       where: {
         contactValue_variantId: {
           contactValue,
-          variantId,
+          variantId: cleanVariantId,
         },
       },
     });
@@ -98,12 +101,12 @@ export async function action({ request }) {
         contactValue,
         contactType,
 
-        productId,
+        productId: cleanProductId,
         productTitle,
         productHandle,
         productImage,
 
-        variantId,
+        variantId: cleanVariantId,
         variantTitle,
 
         price,

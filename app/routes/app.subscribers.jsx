@@ -74,12 +74,9 @@ export default function SubscribersPage() {
       const keyword = search.toLowerCase();
 
       data = data.filter((subscriber) => {
-        return (
-          subscriber.email.toLowerCase().includes(keyword) ||
-          (subscriber.productTitle || "")
-            .toLowerCase()
-            .includes(keyword)
-        );
+        const contact = (subscriber.email || subscriber.phoneNumber || subscriber.contactValue || "").toLowerCase();
+        const title = (subscriber.productTitle || "").toLowerCase();
+        return contact.includes(keyword) || title.includes(keyword);
       });
     }
 
@@ -102,13 +99,13 @@ export default function SubscribersPage() {
 
       case "email-asc":
         data.sort((a, b) =>
-          a.email.localeCompare(b.email),
+          (a.email || a.phoneNumber || "").localeCompare(b.email || b.phoneNumber || ""),
         );
         break;
 
       case "email-desc":
         data.sort((a, b) =>
-          b.email.localeCompare(a.email),
+          (b.email || b.phoneNumber || "").localeCompare(a.email || a.phoneNumber || ""),
         );
         break;
 

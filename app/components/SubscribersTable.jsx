@@ -30,7 +30,7 @@ export default function SubscribersTable({
     >
       <IndexTable.Cell>
         <Text as="span" variant="bodyMd" fontWeight="medium">
-          {subscriber.email}
+          {subscriber.email || "-"}
         </Text>
       </IndexTable.Cell>
 

@@ -7,17 +7,24 @@ function normalizePhoneNumber(phoneNumber) {
     return "";
   }
 
-  const cleaned = value.replace(/[^\d+]/g, "");
+  // Remove all non-digit characters (+, spaces, hyphens, etc.)
+  let digits = value.replace(/\D/g, "");
 
-  if (!cleaned) {
+  if (!digits) {
     return "";
   }
 
-  if (cleaned.startsWith("+")) {
-    return cleaned;
+  // If 11 digits and starts with 0 (e.g. 09876543210), strip the leading zero
+  if (digits.length === 11 && digits.startsWith("0")) {
+    digits = digits.slice(1);
   }
 
-  return `+${cleaned}`;
+  // If 10 digits (e.g. 9876543210), default to adding country code 91 (India)
+  if (digits.length === 10) {
+    return `91${digits}`;
+  }
+
+  return digits;
 }
 
 async function sendMetaWhatsAppMessage({
@@ -74,6 +81,7 @@ export async function sendBackInStockNotifications({
   price,
   comparePrice,
   currency,
+  senderEmail,
   metaAccessToken,
   metaPhoneNumberId,
   metaApiVersion,
@@ -91,6 +99,7 @@ export async function sendBackInStockNotifications({
       price,
       comparePrice,
       currency,
+      senderEmail,
     );
 
     enabledChannels.push("email");

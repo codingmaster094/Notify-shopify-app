@@ -12,7 +12,8 @@ export const action = async ({ request }) => {
   const productUrl = `https://${shop}/products/${payload.handle}`;
 
   for (const variant of payload.variants) {
-    console.log("Webhook Variant:", variant.id);
+    const cleanVariantId = String(variant.id).replace(/^gid:\/\/shopify\/ProductVariant\//, "").trim();
+    console.log("Webhook Variant ID:", cleanVariantId);
     console.log("Webhook Inventory:", variant.inventory_quantity);
 
     // Only notify when product is back in stock
@@ -23,13 +24,12 @@ export const action = async ({ request }) => {
     const subscribers = await prisma.notifyRequest.findMany({
       where: {
         shop,
-        variantId: variant.id.toString(),
+        variantId: cleanVariantId,
         sent: false,
       },
     });
 
-    console.log("Variant ID:", variant.id.toString());
-    console.log("Subscribers:", subscribers);
+    console.log("Subscribers found:", subscribers.length);
 
     if (!subscribers.length) {
       continue;
@@ -40,6 +40,7 @@ export const action = async ({ request }) => {
     });
 
     for (const user of subscribers) {
+      const recipientStr = user.email || user.phoneNumber || user.contactValue;
       try {
         const notificationResult = await sendBackInStockNotifications({
           email: user.email,
@@ -54,6 +55,7 @@ export const action = async ({ request }) => {
           price: user.price,
           comparePrice: user.comparePrice,
           currency: user.currency,
+          senderEmail: shopSettings?.senderEmail,
           metaAccessToken: shopSettings?.metaAccessToken,
           metaPhoneNumberId: shopSettings?.metaPhoneNumberId,
           metaApiVersion: shopSettings?.metaApiVersion,
@@ -71,9 +73,9 @@ export const action = async ({ request }) => {
           },
         });
 
-        console.log(`✅ Notifications sent to ${user.email}: ${notificationResult.channels.join(", ") || "none"}`);
+        console.log(`✅ Notifications sent to ${recipientStr}: ${notificationResult.channels.join(", ") || "none"}`);
       } catch (err) {
-        console.error(`❌ Failed for ${user.email}`, err);
+        console.error(`❌ Failed for ${recipientStr}`, err);
       }
     }
   }

@@ -26,6 +26,7 @@ export async function sendBackInStockEmail(
   price,
   comparePrice,
   currency,
+  senderEmail,
 ) {
   const showCompare =
     comparePrice && comparePrice !== "" && comparePrice !== price;
@@ -146,7 +147,7 @@ export async function sendBackInStockEmail(
   </div>
   `;
 
-  const FROM_EMAIL = process.env.SENDER_EMAIL || process.env.RESEND_ACCOUNT_EMAIL || process.env.RESEND_FROM || "onboarding@resend.dev";
+  const FROM_EMAIL = senderEmail || process.env.SENDER_EMAIL || process.env.RESEND_ACCOUNT_EMAIL || process.env.RESEND_FROM || "onboarding@resend.dev";
 
   const { data, error } = await resend.emails.send({
     from: FROM_EMAIL,
@@ -156,7 +157,7 @@ export async function sendBackInStockEmail(
   });
 
   if (error) {
-    console.error(error);
+    console.error("Resend email error:", error);
     throw error;
   }
 

@@ -22,7 +22,7 @@ export async function action({ request }) {
       currency,
     } = body;
 
-    if (!email || !shop || !productId || !variantId) {
+    if (!shop || !productId || !variantId) {
       return Response.json(
         {
           success: false,
@@ -32,9 +32,22 @@ export async function action({ request }) {
       );
     }
 
+    const normalizedEmail = (email || "").trim().toLowerCase();
+    const normalizedPhoneNumber = (phoneNumber || "").trim();
+    const phoneRegex = /^\+?[\d\s-]{10,15}$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailRegex.test(email)) {
+    if (!normalizedEmail && !normalizedPhoneNumber) {
+      return Response.json(
+        {
+          success: false,
+          message: "Please enter either an email address or a phone number.",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (normalizedEmail && !emailRegex.test(normalizedEmail)) {
       return Response.json(
         {
           success: false,
@@ -44,23 +57,23 @@ export async function action({ request }) {
       );
     }
 
-    const normalizedPhoneNumber = (phoneNumber || "").trim();
-    const phoneRegex = /^\+?[\d\s-]{10,15}$/;
-
     if (normalizedPhoneNumber && !phoneRegex.test(normalizedPhoneNumber)) {
       return Response.json(
         {
           success: false,
-          message: "Please enter a valid phone number for SMS and WhatsApp notifications.",
+          message: "Please enter a valid phone number for WhatsApp notifications.",
         },
         { status: 400 },
       );
     }
 
+    const contactValue = normalizedEmail || normalizedPhoneNumber;
+    const contactType = normalizedEmail ? "email" : "phone";
+
     const existing = await prisma.notifyRequest.findUnique({
       where: {
-        email_variantId: {
-          email,
+        contactValue_variantId: {
+          contactValue,
           variantId,
         },
       },
@@ -80,8 +93,10 @@ export async function action({ request }) {
       data: {
         shop,
 
-        email,
+        email: normalizedEmail || null,
         phoneNumber: normalizedPhoneNumber || null,
+        contactValue,
+        contactType,
 
         productId,
         productTitle,

@@ -38,9 +38,13 @@ model NotifyRequest {
 
   shop          String
 
-  email         String
+  email         String?
 
   phoneNumber   String?
+
+  contactValue  String
+
+  contactType   String? @default("email")
 
   productId     String
   productTitle  String?
@@ -69,7 +73,7 @@ currency String?
 
   updatedAt     DateTime @updatedAt
 
-  @@unique([email, variantId])
+  @@unique([contactValue, variantId])
 
   @@index([variantId])
 

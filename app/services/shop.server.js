@@ -28,6 +28,9 @@ export async function saveShopSettings(shop, formData, admin) {
     primaryColor: formData.get("primaryColor") || "#111827",
     senderName: formData.get("senderName")?.trim() || "",
     senderEmail: formData.get("senderEmail")?.trim() || "",
+    metaAccessToken: formData.get("metaAccessToken")?.trim() || "",
+    metaPhoneNumberId: formData.get("metaPhoneNumberId")?.trim() || "",
+    metaApiVersion: formData.get("metaApiVersion")?.trim() || "v22.0",
   };
 
   // If a file was uploaded via the form, upload it to Shopify Files using the admin client

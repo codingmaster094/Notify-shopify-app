@@ -6,6 +6,7 @@ export async function action({ request }) {
 
     const {
       email,
+      phoneNumber,
       shop,
 
       productId,
@@ -43,6 +44,19 @@ export async function action({ request }) {
       );
     }
 
+    const normalizedPhoneNumber = (phoneNumber || "").trim();
+    const phoneRegex = /^\+?[\d\s-]{10,15}$/;
+
+    if (normalizedPhoneNumber && !phoneRegex.test(normalizedPhoneNumber)) {
+      return Response.json(
+        {
+          success: false,
+          message: "Please enter a valid phone number for SMS and WhatsApp notifications.",
+        },
+        { status: 400 },
+      );
+    }
+
     const existing = await prisma.notifyRequest.findUnique({
       where: {
         email_variantId: {
@@ -67,6 +81,7 @@ export async function action({ request }) {
         shop,
 
         email,
+        phoneNumber: normalizedPhoneNumber || null,
 
         productId,
         productTitle,

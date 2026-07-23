@@ -71,7 +71,7 @@
 
       <h2>Back in Stock</h2>
 
-      <p>Enter your email address and we'll notify you immediately when this product becomes available.</p>
+      <p>Enter your email address, and optionally your phone number, so we can notify you by email, SMS, and WhatsApp when this product is back in stock.</p>
 
       <!-- Email -->
 
@@ -92,6 +92,14 @@
           placeholder="Enter your email address"
         >
       {% endif %}
+
+      <input
+        id="notify-phone"
+        class="notify-input"
+        type="tel"
+        placeholder="Enter your phone number (optional)"
+        style="margin-top: 14px;"
+      >
 
       <!-- Message -->
 
@@ -468,6 +476,7 @@
       const closeBtn = document.getElementById('notify-close');
       const submitBtn = document.getElementById('notify-submit');
       const emailInput = document.getElementById('notify-email');
+      const phoneInput = document.getElementById('notify-phone');
       const messageBox = document.getElementById('notify-message');
 
       if (!openBtn) return;
@@ -514,11 +523,19 @@
 
       submitBtn.addEventListener('click', async () => {
         const email = emailInput.value.trim();
+        const phoneNumber = phoneInput?.value.trim() || '';
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneRegex = /^\+?[\d\s-]{10,15}$/;
 
         if (!emailRegex.test(email)) {
           showMessage('error', 'Please enter a valid email address.');
+
+          return;
+        }
+
+        if (phoneNumber && !phoneRegex.test(phoneNumber)) {
+          showMessage('error', 'Please enter a valid phone number for SMS and WhatsApp.');
 
           return;
         }
@@ -542,6 +559,7 @@
               shop: window.location.hostname,
 
               email,
+              phoneNumber,
 
               productId: openBtn.dataset.product,
               productTitle: openBtn.dataset.productTitle,
@@ -559,7 +577,7 @@
           const data = await response.json();
 
           if (data.success) {
-            showMessage('success', "🎉 You're all set! We'll email you as soon as this item is back in stock.");
+            showMessage('success', "🎉 You're all set! We'll notify you by email, SMS, and WhatsApp as soon as this item is back in stock.");
 
             submitBtn.innerHTML = '✓ Subscribed';
 

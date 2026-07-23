@@ -35,6 +35,10 @@ export default function SubscribersTable({
       </IndexTable.Cell>
 
       <IndexTable.Cell>
+        {subscriber.phoneNumber || "-"}
+      </IndexTable.Cell>
+
+      <IndexTable.Cell>
         {subscriber.productTitle}
       </IndexTable.Cell>
 
@@ -78,6 +82,7 @@ export default function SubscribersTable({
       onSelectionChange={handleSelectionChange}
       headings={[
         { title: "Email" },
+        { title: "Phone" },
         { title: "Product" },
         { title: "Variant" },
         { title: "Status" },

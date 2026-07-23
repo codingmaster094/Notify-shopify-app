@@ -146,8 +146,10 @@ export async function sendBackInStockEmail(
   </div>
   `;
 
+  const FROM_EMAIL = process.env.SENDER_EMAIL || process.env.RESEND_ACCOUNT_EMAIL || process.env.RESEND_FROM || "onboarding@resend.dev";
+
   const { data, error } = await resend.emails.send({
-    from: "onboarding@resend.dev",
+    from: FROM_EMAIL,
     to: email,
     subject: `${productTitle} Back In Stock`,
     html,

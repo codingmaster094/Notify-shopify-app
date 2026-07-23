@@ -21,6 +21,9 @@ export async function ensureShopSettings(shop) {
         primaryColor: "#111827",
         senderName: "",
         senderEmail: "",
+        metaAccessToken: "",
+        metaPhoneNumberId: "",
+        metaApiVersion: "v22.0",
       },
     });
   }

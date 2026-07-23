@@ -1,6 +1,6 @@
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import { sendBackInStockEmail } from "../lib/sendMail.server";
+import { sendBackInStockNotifications } from "../lib/notifications.server";
 
 console.log("========== PRODUCTS UPDATE WEBHOOK ==========");
 export const action = async ({ request }) => {
@@ -35,32 +35,43 @@ export const action = async ({ request }) => {
       continue;
     }
 
+    const shopSettings = await prisma.shopSettings.findUnique({
+      where: { shop },
+    });
+
     for (const user of subscribers) {
       try {
-        console.log("Sending email to:", user.email);
-        await sendBackInStockEmail(
-          user.email,
-          user.productTitle || productTitle,
+        const notificationResult = await sendBackInStockNotifications({
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+          sendEmail: true,
+          sendSms: !!user.phoneNumber,
+          sendWhatsApp: !!user.phoneNumber,
+          productTitle: user.productTitle || productTitle,
           productUrl,
-          user.productImage,
-          user.variantTitle,
-          user.price,
-          user.comparePrice,
-          user.currency,
-        );
+          productImage: user.productImage,
+          variantTitle: user.variantTitle,
+          price: user.price,
+          comparePrice: user.comparePrice,
+          currency: user.currency,
+          metaAccessToken: shopSettings?.metaAccessToken,
+          metaPhoneNumberId: shopSettings?.metaPhoneNumberId,
+          metaApiVersion: shopSettings?.metaApiVersion,
+        });
 
-        console.log("user.productImage", user.productImage);
         await prisma.notifyRequest.update({
           where: {
             id: user.id,
           },
           data: {
             sent: true,
-            emailSentAt: new Date(),
+            emailSentAt: notificationResult.channels.includes("email") ? new Date() : user.emailSentAt,
+            smsSentAt: notificationResult.channels.includes("sms") ? new Date() : user.smsSentAt,
+            whatsappSentAt: notificationResult.channels.includes("whatsapp") ? new Date() : user.whatsappSentAt,
           },
         });
 
-        console.log(`✅ Email sent to ${user.email}`);
+        console.log(`✅ Notifications sent to ${user.email}: ${notificationResult.channels.join(", ") || "none"}`);
       } catch (err) {
         console.error(`❌ Failed for ${user.email}`, err);
       }

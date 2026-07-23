@@ -29,6 +29,15 @@ export default function SettingsForm({
   const [senderEmail, setSenderEmail] = useState(
     settings?.senderEmail || ""
   );
+  const [metaAccessToken, setMetaAccessToken] = useState(
+    settings?.metaAccessToken || ""
+  );
+  const [metaPhoneNumberId, setMetaPhoneNumberId] = useState(
+    settings?.metaPhoneNumberId || ""
+  );
+  const [metaApiVersion, setMetaApiVersion] = useState(
+    settings?.metaApiVersion || "v22.0"
+  );
 
   return (
     <Page
@@ -107,6 +116,34 @@ export default function SettingsForm({
                 onChange={setSenderEmail}
                 autoComplete="email"
                 placeholder="support@example.com"
+              />
+
+              <TextField
+                label="Meta WhatsApp Access Token"
+                type="password"
+                name="metaAccessToken"
+                value={metaAccessToken}
+                onChange={setMetaAccessToken}
+                autoComplete="off"
+                placeholder="Paste your long-lived access token"
+              />
+
+              <TextField
+                label="Meta WhatsApp Phone Number ID"
+                name="metaPhoneNumberId"
+                value={metaPhoneNumberId}
+                onChange={setMetaPhoneNumberId}
+                autoComplete="off"
+                placeholder="123456789012345"
+              />
+
+              <TextField
+                label="Meta Graph API Version"
+                name="metaApiVersion"
+                value={metaApiVersion}
+                onChange={setMetaApiVersion}
+                autoComplete="off"
+                placeholder="v22.0"
               />
 
               <InlineStack align="end">

@@ -73,32 +73,11 @@
 
       <p>Enter your email address or phone number to receive a back-in-stock notification when this product becomes available.</p>
 
-      <!-- Email -->
-
-      {% if customer %}
-        <input
-          id="notify-email"
-          class="notify-input"
-          type="email"
-          value="{{ customer.email }}"
-          readonly
-        >
-
-      {% else %}
-        <input
-          id="notify-email"
-          class="notify-input"
-          type="email"
-          placeholder="Enter your email address"
-        >
-      {% endif %}
-
       <input
-        id="notify-phone"
+        id="notify-contact"
         class="notify-input"
-        type="tel"
-        placeholder="Enter your phone number (optional)"
-        style="margin-top: 14px;"
+        type="text"
+        placeholder="Enter email or phone number"
       >
 
       <!-- Message -->
@@ -475,8 +454,7 @@
       const openBtn = document.getElementById('notify-open');
       const closeBtn = document.getElementById('notify-close');
       const submitBtn = document.getElementById('notify-submit');
-      const emailInput = document.getElementById('notify-email');
-      const phoneInput = document.getElementById('notify-phone');
+      const contactInput = document.getElementById('notify-contact');
       const messageBox = document.getElementById('notify-message');
 
       if (!openBtn) return;
@@ -522,32 +500,22 @@
       });
 
       submitBtn.addEventListener('click', async () => {
-        const email = emailInput.value.trim();
-        const phoneNumber = phoneInput?.value.trim() || '';
+        const contactValue = contactInput.value.trim();
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         const phoneRegex = /^\+?[\d\s-]{10,15}$/;
 
-        const hasEmail = email.length > 0;
-        const hasPhone = phoneNumber.length > 0;
+        const isEmail = emailRegex.test(contactValue);
+        const isPhone = phoneRegex.test(contactValue);
 
-        if (!hasEmail && !hasPhone) {
-          showMessage('error', 'Please enter either an email address or a phone number.');
-
-          return;
-        }
-
-        if (hasEmail && !emailRegex.test(email)) {
-          showMessage('error', 'Please enter a valid email address.');
+        if (!isEmail && !isPhone) {
+          showMessage('error', 'Please enter a valid email address or phone number.');
 
           return;
         }
 
-        if (hasPhone && !phoneRegex.test(phoneNumber)) {
-          showMessage('error', 'Please enter a valid phone number for WhatsApp notifications.');
-
-          return;
-        }
+        const email = isEmail ? contactValue : '';
+        const phoneNumber = isPhone ? contactValue : '';
 
         submitBtn.disabled = true;
 

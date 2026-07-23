@@ -33,31 +33,82 @@ async function sendMetaWhatsAppMessage({
   accessToken,
   phoneNumberId,
   apiVersion,
+  productTitle,
+  productUrl,
 }) {
   if (!accessToken || !phoneNumberId) {
     throw new Error("Meta WhatsApp API is not configured");
   }
 
   const url = `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`;
-  const payload = {
+  const templateName = process.env.META_WHATSAPP_TEMPLATE_NAME || "hello_world";
+  const templateLang = process.env.META_WHATSAPP_TEMPLATE_LANG || "en_US";
+
+  const components = [];
+  if (templateName !== "back_in_stock" && (productTitle || productUrl)) {
+    const parameters = [];
+    if (productTitle) {
+      parameters.push({ type: "text", text: productTitle });
+    }
+    if (productUrl) {
+      parameters.push({ type: "text", text: productUrl });
+    }
+    components.push({
+      type: "body",
+      parameters,
+    });
+  }
+
+  const templatePayload = {
     messaging_product: "whatsapp",
     to,
-    type: "text",
-    text: {
-      body,
+    type: "template",
+    template: {
+      name: templateName,
+      language: {
+        code: templateLang,
+      },
+      ...(components.length > 0 ? { components } : {}),
     },
   };
 
-  const response = await fetch(url, {
+  console.log(`Sending Meta WhatsApp template '${templateName}' to ${to}...`);
+
+  let response = await fetch(url, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(templatePayload),
   });
 
-  const json = await response.json();
+  let json = await response.json();
+
+  // If template fails (e.g. template does not exist), fallback to freeform text message
+  if (!response.ok) {
+    console.warn(`Template message failed (${json?.error?.message}). Falling back to text message...`);
+
+    const textPayload = {
+      messaging_product: "whatsapp",
+      to,
+      type: "text",
+      text: {
+        body,
+      },
+    };
+
+    response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(textPayload),
+    });
+
+    json = await response.json();
+  }
 
   if (!response.ok) {
     throw new Error(
@@ -123,6 +174,8 @@ export async function sendBackInStockNotifications({
         accessToken: resolvedMetaAccessToken,
         phoneNumberId: resolvedMetaPhoneNumberId,
         apiVersion: resolvedMetaApiVersion,
+        productTitle,
+        productUrl,
       });
 
       enabledChannels.push("whatsapp");

@@ -8,12 +8,55 @@ import {
 import { graphql } from "../lib/shopify.server";
 
 /**
- * Load settings for current shop
+ * Load settings for current shop and dynamically fetch shop details if default
  */
-export async function loadShopSettings(shop) {
-  await ensureShopSettings(shop);
+export async function loadShopSettings(shop, admin) {
+  let settings = await ensureShopSettings(shop);
 
-  return await getShopSettings(shop);
+  // If storeName is default domain, or senderEmail/senderName is empty, attempt to auto-populate from Shopify Admin API
+  if (
+    admin &&
+    (!settings.storeName ||
+      settings.storeName === shop ||
+      !settings.senderEmail ||
+      !settings.senderName)
+  ) {
+    try {
+      const response = await graphql(
+        admin,
+        `#graphql
+        query getShopDetails {
+          shop {
+            name
+            email
+          }
+        }
+      `
+      );
+
+      const shopData = response?.shop;
+      if (shopData) {
+        const updates = {};
+        if (!settings.storeName || settings.storeName === shop) {
+          updates.storeName = shopData.name || shop;
+        }
+        if (!settings.senderName) {
+          updates.senderName = shopData.name || "";
+        }
+        if (!settings.senderEmail) {
+          updates.senderEmail = shopData.email || "";
+        }
+
+        if (Object.keys(updates).length > 0) {
+          settings = await updateShopSettings(shop, updates);
+        }
+      }
+    } catch (err) {
+      console.warn("Could not auto-fetch shop details from Shopify GraphQL:", err);
+    }
+  }
+
+  return settings;
 }
 
 /**
@@ -25,7 +68,7 @@ export async function saveShopSettings(shop, formData, admin) {
   const data = {
     storeName: formData.get("storeName")?.trim() || "",
     logo: formData.get("logo")?.trim() || "",
-    primaryColor: formData.get("primaryColor") || "#111827",
+    primaryColor: formData.get("primaryColor")?.trim() || "#111827",
     senderName: formData.get("senderName")?.trim() || "",
     senderEmail: formData.get("senderEmail")?.trim() || "",
     metaAccessToken: formData.get("metaAccessToken")?.trim() || "",
@@ -35,10 +78,16 @@ export async function saveShopSettings(shop, formData, admin) {
 
   // If a file was uploaded via the form, upload it to Shopify Files using the admin client
   const logoFile = formData.get("logo_file");
-  if (logoFile && typeof logoFile.arrayBuffer === "function" && admin) {
+  if (
+    logoFile &&
+    typeof logoFile.arrayBuffer === "function" &&
+    logoFile.size > 0 &&
+    admin
+  ) {
     try {
       const buffer = Buffer.from(await logoFile.arrayBuffer());
       const base64 = buffer.toString("base64");
+      const mimeType = logoFile.type || "image/png";
 
       const mutation = `#graphql
         mutation fileCreate($files: [FileCreateInput!]!) {
@@ -53,8 +102,8 @@ export async function saveShopSettings(shop, formData, admin) {
         files: [
           {
             filename: logoFile.name || "logo.png",
-            contentType: logoFile.type || "image/png",
-            content: base64,
+            contentType: "IMAGE",
+            originalSource: `data:${mimeType};base64,${base64}`,
           },
         ],
       };
@@ -111,8 +160,7 @@ export function validateSenderEmail(email) {
     };
   }
 
-  const regex =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (!regex.test(email)) {
     return {

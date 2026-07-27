@@ -8,9 +8,9 @@ import {
 import SettingsForm from "../components/SettingsForm";
 
 export async function loader({ request }) {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
 
-  return await loadShopSettings(session.shop);
+  return await loadShopSettings(session.shop, admin);
 }
 
 export async function action({ request }) {

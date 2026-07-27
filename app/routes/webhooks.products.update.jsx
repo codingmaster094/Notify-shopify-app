@@ -21,15 +21,19 @@ export const action = async ({ request }) => {
       continue;
     }
 
+    const cleanShop = (shop || "").replace(/^https?:\/\//, "").trim();
     const subscribers = await prisma.notifyRequest.findMany({
       where: {
-        shop,
+        shop: {
+          equals: cleanShop,
+          mode: "insensitive",
+        },
         variantId: cleanVariantId,
         sent: false,
       },
     });
 
-    console.log("Subscribers found:", subscribers.length);
+    console.log(`Subscribers found for variant ${cleanVariantId}:`, subscribers.length);
 
     if (!subscribers.length) {
       continue;

@@ -41,21 +41,16 @@ async function sendMetaWhatsAppMessage({
   }
 
   const url = `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`;
-  const templateName = process.env.META_WHATSAPP_TEMPLATE_NAME || " ";
-  const templateLang = process.env.META_WHATSAPP_TEMPLATE_LANG || "en_US";
+  const templateName = (process.env.META_WHATSAPP_TEMPLATE_NAME || "back_in_stock").trim();
+  const templateLang = (process.env.META_WHATSAPP_TEMPLATE_LANG || "en_US").trim();
 
   const components = [];
-  if (templateName !== "back_in_stock" && (productTitle || productUrl)) {
-    const parameters = [];
-    if (productTitle) {
-      parameters.push({ type: "text", text: productTitle });
-    }
-    if (productUrl) {
-      parameters.push({ type: "text", text: productUrl });
-    }
+  if (productTitle) {
     components.push({
       type: "body",
-      parameters,
+      parameters: [
+        { type: "text", text: productTitle },
+      ],
     });
   }
 

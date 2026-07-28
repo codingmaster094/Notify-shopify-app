@@ -62,83 +62,57 @@ export async function sendBackInStockEmail(
       : "My Store";
 
   const html = `
-  <div style="margin:0;padding:40px;background:#f5f5f5;font-family:Arial,sans-serif;">
-    <table align="center" width="600" cellpadding="0" cellspacing="0"
-      style="background:#ffffff;border-radius:12px;overflow:hidden;">
+  <div style="margin:0;padding:40px 16px;background:#f5f7fb;font-family:Arial,sans-serif;">
+    <table align="center" width="600" cellpadding="0" cellspacing="0" role="presentation"
+      style="width:100%;max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(17,24,39,0.08);">
 
       <tr>
-        <td style="background:${brandColor};padding:24px;text-align:center;color:#fff;font-size:22px;font-weight:bold;">
+        <td style="background:${brandColor};padding:22px 24px;text-align:center;color:#fff;font-size:22px;font-weight:bold;">
           ${headerContent}
         </td>
       </tr>
 
       <tr>
-        <td style="padding:35px;text-align:center;">
+        <td style="padding:40px 32px;text-align:center;">
 
-          <h1 style="margin:0 0 8px;font-size:28px;">
+          <h1 style="margin:0 0 14px;font-size:28px;line-height:36px;color:#161b25;">
             Back In Stock!
           </h1>
 
-          <p style="margin:12px 0 30px;color:#666;">
-            Great news! The product you requested is available again.
+          <p style="margin:0 auto 30px;max-width:460px;color:#5f6673;font-size:16px;line-height:24px;">
+            Hi! Great news, <strong style="color:#161b25;">${productTitle}</strong> is now back in stock. Check it out before it sells out again!
           </p>
 
-          ${
-            productImage
-              ? `
-          <img
-            src="${productImage}"
-            width="150"
-            style="border-radius:12px;margin-bottom:25px;"
-          />
-          `
-              : ""
-          }
-
-          <h2 style="margin:0;color:#222;">
-            ${productTitle}
-          </h2>
-
-          ${
-            variantTitle
-              ? `
-          <p style="color:#777;font-size:15px;">
-            ${variantTitle}
-          </p>
-          `
-              : ""
-          }
-
-          <div style="margin:20px 0;">
-
-            <span
-              style="
-                font-size:30px;
-                font-weight:bold;
-                color:#111;
-              "
-            >
-              ${currencySymbol(currency)}${price || ""}
-            </span>
-
-            ${
-              showCompare
-                ? `
-              <span
-                style="
-                  margin-left:10px;
-                  color:#999;
-                  text-decoration:line-through;
-                  font-size:18px;
-                "
-              >
-                ${currencySymbol(currency)}${comparePrice}
-              </span>
-            `
-                : ""
-            }
-
-          </div>
+          <table align="center" width="100%" cellpadding="0" cellspacing="0" role="presentation"
+            style="margin:0 0 30px;background:#f7f9fc;border:1px solid #e7ebf2;border-radius:14px;">
+            <tr>
+              <td style="padding:26px 20px 12px;text-align:center;">
+                ${
+                  productImage
+                    ? `<img src="${productImage}" width="190" alt="${productTitle}" style="display:block;width:190px;max-width:100%;height:190px;object-fit:contain;margin:0 auto;" />`
+                    : ""
+                }
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:8px 24px 26px;text-align:center;">
+                <h2 style="margin:0;color:#161b25;font-size:20px;line-height:28px;">${productTitle}</h2>
+                ${
+                  variantTitle
+                    ? `<p style="margin:7px 0 0;color:#747b88;font-size:14px;line-height:20px;">${variantTitle}</p>`
+                    : ""
+                }
+                <p style="margin:16px 0 0;color:#161b25;font-size:26px;line-height:32px;font-weight:700;">
+                  ${currencySymbol(currency)}${price || ""}
+                  ${
+                    showCompare
+                      ? `<span style="margin-left:8px;color:#8b93a1;text-decoration:line-through;font-size:15px;font-weight:400;white-space:nowrap;">${currencySymbol(currency)}${comparePrice}</span>`
+                      : ""
+                  }
+                </p>
+              </td>
+            </tr>
+          </table>
 
           <a
             href="${productUrl}"
@@ -146,14 +120,14 @@ export async function sendBackInStockEmail(
               display:inline-block;
               background:${brandColor};
               color:#fff;
-              padding:15px 35px;
-              border-radius:8px;
+              padding:14px 32px;
+              border-radius:9px;
               text-decoration:none;
               font-weight:bold;
-              margin-top:20px;
+              font-size:15px;
             "
           >
-            Shop Now
+            View product
           </a>
 
         </td>
@@ -162,11 +136,11 @@ export async function sendBackInStockEmail(
       <tr>
         <td
           style="
-            background:#fafafa;
+            background:#f7f9fc;
             text-align:center;
             color:#888;
-            padding:25px;
-            font-size:13px;
+            padding:22px;
+            font-size:12px;
           "
         >
           Thank you for subscribing to back in stock notifications.

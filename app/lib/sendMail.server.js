@@ -51,6 +51,8 @@ export async function sendBackInStockEmail(
 ) {
   const showCompare =
     comparePrice && comparePrice !== "" && comparePrice !== price;
+  const showVariantTitle =
+    variantTitle && variantTitle.trim().toLowerCase() !== "default title";
 
   const storeName = shopSettings?.storeName?.trim() || "";
   const brandColor = shopSettings?.primaryColor || "#111827";
@@ -98,7 +100,7 @@ export async function sendBackInStockEmail(
               <td style="padding:8px 24px 26px;text-align:center;">
                 <h2 style="margin:0;color:#161b25;font-size:20px;line-height:28px;">${productTitle}</h2>
                 ${
-                  variantTitle
+                  showVariantTitle
                     ? `<p style="margin:7px 0 0;color:#747b88;font-size:14px;line-height:20px;">${variantTitle}</p>`
                     : ""
                 }

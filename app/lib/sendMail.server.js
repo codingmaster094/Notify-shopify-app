@@ -102,7 +102,7 @@ export async function sendBackInStockEmail(
                 <h2 style="margin:0;color:${fontColor};font-size:20px;line-height:28px;">${productTitle}</h2>
                 ${
                   showVariantTitle
-                    ? `<p style="margin:7px 0 0;color:#747b88;font-size:14px;line-height:20px;">${variantTitle}</p>`
+                    ? `<p style="margin:7px 0 0;color:${fontColor};font-size:14px;line-height:20px;">${variantTitle}</p>`
                     : ""
                 }
                 <p style="margin:16px 0 0;color:${fontColor};font-size:26px;line-height:32px;font-weight:700;">
@@ -141,7 +141,7 @@ export async function sendBackInStockEmail(
           style="
             background:#f7f9fc;
             text-align:center;
-            color:#888;
+            color:${fontColor};
             padding:22px;
             font-size:12px;
           "

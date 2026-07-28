@@ -1,7 +1,6 @@
 // notify-me\app\services\shop.server.js
 import {
   ensureShopSettings,
-  getShopSettings,
   updateShopSettings,
 } from "../models/shop-settings.server";
 
@@ -28,19 +27,22 @@ export async function loadShopSettings(shop, admin) {
   // Only call Shopify API when at least one field still has a factory/blank value
   if (
     admin &&
-    (storeNameNeedsPopulate || senderNameNeedsPopulate || senderEmailNeedsPopulate)
+    (storeNameNeedsPopulate ||
+      senderNameNeedsPopulate ||
+      senderEmailNeedsPopulate)
   ) {
     try {
       const response = await graphql(
         admin,
-        `#graphql
-        query getShopDetails {
-          shop {
-            name
-            email
+        `
+          #graphql
+          query getShopDetails {
+            shop {
+              name
+              email
+            }
           }
-        }
-      `
+        `,
       );
 
       const shopData = response?.shop;
@@ -67,7 +69,10 @@ export async function loadShopSettings(shop, admin) {
         }
       }
     } catch (err) {
-      console.warn("Could not auto-fetch shop details from Shopify GraphQL:", err);
+      console.warn(
+        "Could not auto-fetch shop details from Shopify GraphQL:",
+        err,
+      );
     }
   }
 
@@ -78,7 +83,7 @@ export async function loadShopSettings(shop, admin) {
  * Save settings
  */
 export async function saveShopSettings(shop, formData, admin) {
-  await ensureShopSettings(shop);
+  const currentSettings = await ensureShopSettings(shop);
 
   const data = {
     storeName: formData.get("storeName")?.trim() || "",
@@ -101,13 +106,75 @@ export async function saveShopSettings(shop, formData, admin) {
   ) {
     try {
       const buffer = Buffer.from(await logoFile.arrayBuffer());
-      const base64 = buffer.toString("base64");
       const mimeType = logoFile.type || "image/png";
+
+      const stagedUploadMutation = `#graphql
+        mutation stagedUploadsCreate($input: [StagedUploadInput!]!) {
+          stagedUploadsCreate(input: $input) {
+            stagedTargets {
+              url
+              resourceUrl
+              parameters { name value }
+            }
+            userErrors { field message }
+          }
+        }
+      `;
+
+      const stagedUpload = await graphql(admin, stagedUploadMutation, {
+        input: [
+          {
+            filename: logoFile.name || "logo.png",
+            mimeType,
+            resource: "IMAGE",
+            fileSize: String(buffer.length),
+            httpMethod: "POST",
+          },
+        ],
+      });
+
+      const stagedResult = stagedUpload?.stagedUploadsCreate;
+      if (
+        stagedResult?.userErrors?.length ||
+        !stagedResult?.stagedTargets?.[0]
+      ) {
+        throw new Error(
+          stagedResult?.userErrors?.map((error) => error.message).join(", ") ||
+            "Could not prepare logo upload.",
+        );
+      }
+
+      const target = stagedResult.stagedTargets[0];
+      const uploadForm = new FormData();
+      target.parameters.forEach(({ name, value }) =>
+        uploadForm.append(name, value),
+      );
+      uploadForm.append(
+        "file",
+        new Blob([buffer], { type: mimeType }),
+        logoFile.name || "logo.png",
+      );
+
+      const uploadResponse = await fetch(target.url, {
+        method: "POST",
+        body: uploadForm,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(
+          `Logo upload failed with status ${uploadResponse.status}.`,
+        );
+      }
 
       const mutation = `#graphql
         mutation fileCreate($files: [FileCreateInput!]!) {
           fileCreate(files: $files) {
-            files { id url }
+            files {
+              id
+              ... on MediaImage {
+                image { url }
+              }
+            }
             userErrors { field message }
           }
         }
@@ -118,7 +185,7 @@ export async function saveShopSettings(shop, formData, admin) {
           {
             filename: logoFile.name || "logo.png",
             contentType: "IMAGE",
-            originalSource: `data:${mimeType};base64,${base64}`,
+            originalSource: target.resourceUrl,
           },
         ],
       };
@@ -127,12 +194,21 @@ export async function saveShopSettings(shop, formData, admin) {
 
       const fileCreate = result?.fileCreate;
       if (fileCreate?.userErrors && fileCreate.userErrors.length) {
-        console.warn("Shopify fileCreate errors:", fileCreate.userErrors);
-      } else if (fileCreate?.files && fileCreate.files.length) {
-        data.logo = fileCreate.files[0].url;
+        throw new Error(
+          fileCreate.userErrors.map((error) => error.message).join(", "),
+        );
       }
+
+      const uploadedLogoUrl = fileCreate?.files?.[0]?.image?.url;
+      if (!uploadedLogoUrl) {
+        throw new Error("Shopify did not return a logo URL.");
+      }
+
+      data.logo = uploadedLogoUrl;
     } catch (err) {
       console.warn("Logo upload failed:", err);
+      // Do not erase the current logo if the replacement upload fails.
+      data.logo = currentSettings.logo || "";
     }
   }
 

@@ -13,13 +13,23 @@ import { graphql } from "../lib/shopify.server";
 export async function loadShopSettings(shop, admin) {
   let settings = await ensureShopSettings(shop);
 
-  // Determine which fields still need auto-populating from Shopify API
-  const storeNameNeedsPopulate = !settings.storeName || settings.storeName === shop;
+  // Strip protocol from shop just in case, for safe comparison
+  const rawDomain = shop.replace(/^https?:\/\//, "").trim();
+
+  // A blank store name is a valid saved choice. Only replace the initial
+  // domain-based default; otherwise a user who clears the field would see it
+  // reappear after the page reloads.
+  const storeNameNeedsPopulate =
+    settings.storeName === rawDomain || settings.storeName === shop;
+
   const senderNameNeedsPopulate = !settings.senderName;
   const senderEmailNeedsPopulate = !settings.senderEmail;
 
-  // Only call Shopify API if at least one field genuinely needs filling
-  if (admin && (storeNameNeedsPopulate || senderNameNeedsPopulate || senderEmailNeedsPopulate)) {
+  // Only call Shopify API when at least one field still has a factory/blank value
+  if (
+    admin &&
+    (storeNameNeedsPopulate || senderNameNeedsPopulate || senderEmailNeedsPopulate)
+  ) {
     try {
       const response = await graphql(
         admin,
@@ -37,9 +47,9 @@ export async function loadShopSettings(shop, admin) {
       if (shopData) {
         const updates = {};
 
-        // Only auto-fill storeName when it is truly blank or still equals the raw shop domain
+        // Auto-fill storeName ONLY when it has never been customised
         if (storeNameNeedsPopulate) {
-          updates.storeName = shopData.name || shop;
+          updates.storeName = shopData.name || rawDomain;
         }
 
         // Auto-fill senderName only when it is blank

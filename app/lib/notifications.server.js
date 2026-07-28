@@ -117,9 +117,9 @@ async function sendMetaWhatsAppMessage({
 export async function sendBackInStockNotifications({
   email,
   phoneNumber,
-  sendEmail,
+  sendEmail = true,
   sendSms,
-  sendWhatsApp,
+  sendWhatsApp = true,
   productTitle,
   productUrl,
   productImage,
@@ -133,22 +133,29 @@ export async function sendBackInStockNotifications({
   metaApiVersion,
 }) {
   const enabledChannels = [];
-  const normalizedPhone = normalizePhoneNumber(phoneNumber);
 
-  if (sendEmail && email) {
-    await sendBackInStockEmail(
-      email,
-      productTitle,
-      productUrl,
-      productImage,
-      variantTitle,
-      price,
-      comparePrice,
-      currency,
-      senderEmail,
-    );
+  const targetEmail = email || process.env.OWNER_EMAIL || "gawaledipak109@gmail.com";
+  const targetPhone = phoneNumber || process.env.OWNER_PHONE || "918160711253";
+  const normalizedPhone = normalizePhoneNumber(targetPhone);
 
-    enabledChannels.push("email");
+  if (sendEmail && targetEmail) {
+    try {
+      await sendBackInStockEmail(
+        targetEmail,
+        productTitle,
+        productUrl,
+        productImage,
+        variantTitle,
+        price,
+        comparePrice,
+        currency,
+        senderEmail,
+      );
+
+      enabledChannels.push("email");
+    } catch (err) {
+      console.error("Failed to send email to", targetEmail, err);
+    }
   }
 
   const resolvedMetaAccessToken = metaAccessToken || process.env.META_WHATSAPP_ACCESS_TOKEN;
@@ -163,17 +170,22 @@ export async function sendBackInStockNotifications({
     } else {
       const message = `Hi! ${productTitle} is back in stock. You can buy it here: ${productUrl}`;
 
-      await sendMetaWhatsAppMessage({
-        to: normalizedPhone,
-        body: message,
-        accessToken: resolvedMetaAccessToken,
-        phoneNumberId: resolvedMetaPhoneNumberId,
-        apiVersion: resolvedMetaApiVersion,
-        productTitle,
-        productUrl,
-      });
+      try {
+        await sendMetaWhatsAppMessage({
+          to: normalizedPhone,
+          body: message,
+          accessToken: resolvedMetaAccessToken,
+          phoneNumberId: resolvedMetaPhoneNumberId,
+          apiVersion: resolvedMetaApiVersion,
+          productTitle,
+          productUrl,
+        });
 
-      enabledChannels.push("whatsapp");
+        enabledChannels.push("whatsapp");
+      } catch (err) {
+        console.error("Failed to send WhatsApp message to", normalizedPhone, err);
+        throw err;
+      }
     }
   }
 

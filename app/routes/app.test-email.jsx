@@ -120,7 +120,7 @@ export default function TestNotificationsPage() {
 
   const [selectedTab, setSelectedTab] = useState(0);
   const [toEmail, setToEmail] = useState("gawaledipak109@gmail.com");
-  const [toPhone, setToPhone] = useState("91");
+  const [toPhone, setToPhone] = useState("918160711253");
 
   const tabs = [
     { id: "whatsapp", content: "💬 Test WhatsApp Message" },

@@ -42,7 +42,7 @@ async function sendMetaWhatsAppMessage({
 
   const url = `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`;
   const templateName = (process.env.META_WHATSAPP_TEMPLATE_NAME || "back_in_stock").trim();
-  const templateLang = (process.env.META_WHATSAPP_TEMPLATE_LANG || "en_US").trim();
+  const templateLang = (process.env.META_WHATSAPP_TEMPLATE_LANG || "en").trim();
 
   const components = [];
   if (productTitle) {

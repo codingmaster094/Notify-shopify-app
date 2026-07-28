@@ -73,13 +73,13 @@ export default function Dashboard() {
                 "text",
               ]}
               headings={[
-                "Email",
+                "Contact",
                 "Product",
                 "Variant",
                 "Status",
               ]}
               rows={data.latestSubscribers.map((item) => [
-                item.email,
+                item.email || item.phoneNumber || item.contactValue || "-",
                 item.productTitle,
                 item.variantTitle,
                 item.sent ? "Sent" : "Pending",

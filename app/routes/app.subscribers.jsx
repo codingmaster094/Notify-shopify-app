@@ -10,28 +10,52 @@ import {
 } from "@shopify/polaris";
 
 import { authenticate } from "../shopify.server";
-import { getSubscribers } from "../models/notify.server";
+import { getSubscribers, deleteSubscriber } from "../models/notify.server";
 
 import SubscribersTable from "../components/SubscribersTable";
-import { useLoaderData } from "react-router";
+import { useLoaderData, useFetcher } from "react-router";
 
 export async function loader({ request }) {
-  await authenticate.admin(request);
-  const subscribers = await getSubscribers();
+  const { session } = await authenticate.admin(request);
+  const subscribers = await getSubscribers(session.shop);
   return { subscribers };
+}
+
+export async function action({ request }) {
+  await authenticate.admin(request);
+  const formData = await request.formData();
+  const id = formData.get("id");
+  const intent = formData.get("intent");
+
+  if (intent === "delete" && id) {
+    await deleteSubscriber(id);
+    return { success: true };
+  }
+
+  return { success: false };
 }
 
 export default function SubscribersPage() {
   const { subscribers } = useLoaderData();
+  const fetcher = useFetcher();
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
   function handleDelete(id) {
-    console.log("Delete subscriber:", id);
-    // Database delete next step
+    if (!confirm("Are you sure you want to delete this subscriber?")) return;
+    const formData = new FormData();
+    formData.append("intent", "delete");
+    formData.append("id", id);
+    fetcher.submit(formData, { method: "POST" });
   }
+
+  // Optimistically remove deleted subscriber from list
+  const deletingId = fetcher.formData?.get("id");
+  const activeSubscribers = deletingId
+    ? subscribers.filter((s) => s.id !== deletingId)
+    : subscribers;
 
   const statusOptions = [
     {
@@ -68,7 +92,7 @@ export default function SubscribersPage() {
   ];
 
   const filteredSubscribers = useMemo(() => {
-    let data = [...subscribers];
+    let data = [...activeSubscribers];
 
     if (search.trim()) {
       const keyword = search.toLowerCase();
@@ -159,6 +183,7 @@ export default function SubscribersPage() {
           <SubscribersTable
             subscribers={filteredSubscribers}
             onDelete={handleDelete}
+            deletingId={deletingId}
           />
         </Card>
       </BlockStack>

@@ -13,14 +13,13 @@ import { graphql } from "../lib/shopify.server";
 export async function loadShopSettings(shop, admin) {
   let settings = await ensureShopSettings(shop);
 
-  // If storeName is default domain, or senderEmail/senderName is empty, attempt to auto-populate from Shopify Admin API
-  if (
-    admin &&
-    (!settings.storeName ||
-      settings.storeName === shop ||
-      !settings.senderEmail ||
-      !settings.senderName)
-  ) {
+  // Determine which fields still need auto-populating from Shopify API
+  const storeNameNeedsPopulate = !settings.storeName || settings.storeName === shop;
+  const senderNameNeedsPopulate = !settings.senderName;
+  const senderEmailNeedsPopulate = !settings.senderEmail;
+
+  // Only call Shopify API if at least one field genuinely needs filling
+  if (admin && (storeNameNeedsPopulate || senderNameNeedsPopulate || senderEmailNeedsPopulate)) {
     try {
       const response = await graphql(
         admin,
@@ -37,13 +36,19 @@ export async function loadShopSettings(shop, admin) {
       const shopData = response?.shop;
       if (shopData) {
         const updates = {};
-        if (!settings.storeName || settings.storeName === shop) {
+
+        // Only auto-fill storeName when it is truly blank or still equals the raw shop domain
+        if (storeNameNeedsPopulate) {
           updates.storeName = shopData.name || shop;
         }
-        if (!settings.senderName) {
+
+        // Auto-fill senderName only when it is blank
+        if (senderNameNeedsPopulate) {
           updates.senderName = shopData.name || "";
         }
-        if (!settings.senderEmail) {
+
+        // Auto-fill senderEmail only when it is blank
+        if (senderEmailNeedsPopulate) {
           updates.senderEmail = shopData.email || "";
         }
 

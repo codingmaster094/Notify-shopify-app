@@ -42,32 +42,11 @@ async function sendMetaWhatsAppMessage({
 
   const url = `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`;
   const templateName = (process.env.META_WHATSAPP_TEMPLATE_NAME || "back_in_stock").trim();
-  const templateLang = (process.env.META_WHATSAPP_TEMPLATE_LANG || "en_US").trim();
+  const templateLang = (process.env.META_WHATSAPP_TEMPLATE_LANG || "en").trim();
 
-  let buttonParam = "products";
-  if (productUrl) {
-    try {
-      const parsed = new URL(productUrl);
-      buttonParam = parsed.pathname.replace(/^\//, "") || "products";
-    } catch {
-      buttonParam = productUrl;
-    }
-  }
-
-  const components = [];
-  if (productTitle) {
-    components.push({
-      type: "body",
-      parameters: [{ type: "text", text: productTitle }],
-    });
-  }
-
-  components.push({
-    type: "button",
-    sub_type: "url",
-    index: "0",
-    parameters: [{ type: "text", text: buttonParam }],
-  });
+  const bodyComponents = productTitle
+    ? [{ type: "body", parameters: [{ type: "text", text: productTitle }] }]
+    : [];
 
   const templatePayload = {
     messaging_product: "whatsapp",
@@ -78,11 +57,11 @@ async function sendMetaWhatsAppMessage({
       language: {
         code: templateLang,
       },
-      components,
+      ...(bodyComponents.length > 0 ? { components: bodyComponents } : {}),
     },
   };
 
-  console.log(`Sending Meta WhatsApp template '${templateName}' to ${to}...`);
+  console.log(`Sending Meta WhatsApp template '${templateName}' (${templateLang}) to ${to}...`);
 
   let response = await fetch(url, {
     method: "POST",
@@ -95,11 +74,27 @@ async function sendMetaWhatsAppMessage({
 
   let json = await response.json();
 
-  // If button parameter is rejected or not matching, retry without button component
+  // If button parameter is required (e.g. error 131008), retry adding URL button parameter
   if (!response.ok && json?.error?.code === 131008) {
-    const fallbackComponents = productTitle
-      ? [{ type: "body", parameters: [{ type: "text", text: productTitle }] }]
-      : [];
+    let buttonParam = "products";
+    if (productUrl) {
+      try {
+        const parsed = new URL(productUrl);
+        buttonParam = parsed.pathname.replace(/^\//, "") || "products";
+      } catch {
+        buttonParam = productUrl;
+      }
+    }
+
+    const buttonComponents = [
+      ...bodyComponents,
+      {
+        type: "button",
+        sub_type: "url",
+        index: "0",
+        parameters: [{ type: "text", text: buttonParam }],
+      },
+    ];
 
     const retryPayload = {
       messaging_product: "whatsapp",
@@ -108,7 +103,7 @@ async function sendMetaWhatsAppMessage({
       template: {
         name: templateName,
         language: { code: templateLang },
-        ...(fallbackComponents.length > 0 ? { components: fallbackComponents } : {}),
+        components: buttonComponents,
       },
     };
 
@@ -119,6 +114,31 @@ async function sendMetaWhatsAppMessage({
         "Content-Type": "application/json",
       },
       body: JSON.stringify(retryPayload),
+    });
+
+    json = await response.json();
+  }
+
+  // If template language en fails, retry with en_US
+  if (!response.ok && json?.error?.code === 132001 && templateLang !== "en_US") {
+    const retryLangPayload = {
+      messaging_product: "whatsapp",
+      to,
+      type: "template",
+      template: {
+        name: templateName,
+        language: { code: "en_US" },
+        ...(bodyComponents.length > 0 ? { components: bodyComponents } : {}),
+      },
+    };
+
+    response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(retryLangPayload),
     });
 
     json = await response.json();

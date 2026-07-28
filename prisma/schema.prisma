@@ -96,6 +96,8 @@ model ShopSettings {
 
   primaryColor String? @default("#111827")
 
+  fontColor String? @default("#161B25")
+
   senderName String?
 
   senderEmail String?

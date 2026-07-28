@@ -1,0 +1,2 @@
+ALTER TABLE "ShopSettings"
+ADD COLUMN "fontColor" TEXT DEFAULT '#161B25';

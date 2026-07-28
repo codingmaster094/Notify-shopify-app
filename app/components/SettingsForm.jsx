@@ -47,6 +47,13 @@ const SETTINGS_SECTIONS = [
         helpText: "Used for the primary action in notification emails.",
         type: "color",
       },
+      {
+        name: "fontColor",
+        label: "Font color",
+        autoComplete: "off",
+        helpText: "Used for text in notification emails.",
+        type: "color",
+      },
     ],
   },
   {
@@ -102,6 +109,7 @@ const FIELD_DEFAULTS = {
   storeName: "",
   logo: "",
   primaryColor: "#111827",
+  fontColor: "#161B25",
   senderName: "",
   senderEmail: "",
   metaAccessToken: "",

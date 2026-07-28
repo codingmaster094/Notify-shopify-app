@@ -56,6 +56,7 @@ export async function sendBackInStockEmail(
 
   const storeName = shopSettings?.storeName?.trim() || "";
   const brandColor = shopSettings?.primaryColor || "#111827";
+  const fontColor = shopSettings?.fontColor || "#161B25";
   const logoUrl = shopSettings?.logo || "";
   const headerContent = storeName
     ? storeName
@@ -77,12 +78,12 @@ export async function sendBackInStockEmail(
       <tr>
         <td style="padding:40px 32px;text-align:center;">
 
-          <h1 style="margin:0 0 14px;font-size:28px;line-height:36px;color:#161b25;">
+          <h1 style="margin:0 0 14px;font-size:28px;line-height:36px;color:${fontColor};">
             Back In Stock!
           </h1>
 
-          <p style="margin:0 auto 30px;max-width:460px;color:#5f6673;font-size:16px;line-height:24px;">
-            Hi! Great news, <strong style="color:#161b25;">${productTitle}</strong> is now back in stock. Check it out before it sells out again!
+          <p style="margin:0 auto 30px;max-width:460px;color:${fontColor};font-size:16px;line-height:24px;">
+            Hi! Great news, <strong style="color:${fontColor};">${productTitle}</strong> is now back in stock. Check it out before it sells out again!
           </p>
 
           <table align="center" width="100%" cellpadding="0" cellspacing="0" role="presentation"
@@ -98,13 +99,13 @@ export async function sendBackInStockEmail(
             </tr>
             <tr>
               <td style="padding:8px 24px 26px;text-align:center;">
-                <h2 style="margin:0;color:#161b25;font-size:20px;line-height:28px;">${productTitle}</h2>
+                <h2 style="margin:0;color:${fontColor};font-size:20px;line-height:28px;">${productTitle}</h2>
                 ${
                   showVariantTitle
                     ? `<p style="margin:7px 0 0;color:#747b88;font-size:14px;line-height:20px;">${variantTitle}</p>`
                     : ""
                 }
-                <p style="margin:16px 0 0;color:#161b25;font-size:26px;line-height:32px;font-weight:700;">
+                <p style="margin:16px 0 0;color:${fontColor};font-size:26px;line-height:32px;font-weight:700;">
                   ${currencySymbol(currency)}${price || ""}
                   ${
                     showCompare

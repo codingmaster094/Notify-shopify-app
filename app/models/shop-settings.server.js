@@ -1,4 +1,3 @@
-
 // notify-me\app\models\shop-settings.server.js
 import prisma from "../db.server";
 
@@ -19,6 +18,7 @@ export async function ensureShopSettings(shop) {
         storeName: shop,
         logo: "",
         primaryColor: "#111827",
+        fontColor: "#161B25",
         senderName: "",
         senderEmail: "",
         metaAccessToken: "",

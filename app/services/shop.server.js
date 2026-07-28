@@ -118,6 +118,7 @@ export async function saveShopSettings(shop, formData, admin) {
     storeName: formData.get("storeName")?.trim() || "",
     logo: formData.get("logo")?.trim() || "",
     primaryColor: formData.get("primaryColor")?.trim() || "#111827",
+    fontColor: formData.get("fontColor")?.trim() || "#161B25",
     senderName: formData.get("senderName")?.trim() || "",
     senderEmail: formData.get("senderEmail")?.trim() || "",
     metaAccessToken: formData.get("metaAccessToken")?.trim() || "",
@@ -261,6 +262,7 @@ export async function updateBranding(shop, branding) {
     storeName: branding.storeName,
     logo: branding.logo,
     primaryColor: branding.primaryColor,
+    fontColor: branding.fontColor,
   });
 }
 

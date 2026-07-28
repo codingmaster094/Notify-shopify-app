@@ -52,9 +52,14 @@ export async function sendBackInStockEmail(
   const showCompare =
     comparePrice && comparePrice !== "" && comparePrice !== price;
 
-  const storeName = shopSettings?.storeName || "My Store";
+  const storeName = shopSettings?.storeName?.trim() || "";
   const brandColor = shopSettings?.primaryColor || "#111827";
   const logoUrl = shopSettings?.logo || "";
+  const headerContent = storeName
+    ? storeName
+    : logoUrl
+      ? `<img src="${logoUrl}" width="120" alt="Store logo" style="display:block;margin:0 auto;max-height:50px;object-fit:contain;" />`
+      : "My Store";
 
   const html = `
   <div style="margin:0;padding:40px;background:#f5f5f5;font-family:Arial,sans-serif;">
@@ -63,8 +68,7 @@ export async function sendBackInStockEmail(
 
       <tr>
         <td style="background:${brandColor};padding:24px;text-align:center;color:#fff;font-size:22px;font-weight:bold;">
-          ${logoUrl ? `<img src="${logoUrl}" width="120" style="display:block;margin:0 auto 10px;max-height:50px;object-fit:contain;" />` : ""}
-          ${storeName}
+          ${headerContent}
         </td>
       </tr>
 

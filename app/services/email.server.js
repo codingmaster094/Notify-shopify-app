@@ -1,7 +1,9 @@
 // notify-me\app\services\email.server.js
 import { Resend } from "resend";
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 /**
  * Currency Symbol
@@ -26,6 +28,7 @@ function currencySymbol(code) {
  */
 function buildEmailTemplate({
   shopName,
+  logoUrl,
   productTitle,
   variantTitle,
   productImage,
@@ -36,6 +39,12 @@ function buildEmailTemplate({
   brandColor,
   buttonText = "Shop Now",
 }) {
+  const headerContent = shopName?.trim()
+    ? shopName
+    : logoUrl
+      ? `<img src="${logoUrl}" width="120" alt="Store logo" style="display:block;margin:0 auto;max-height:50px;object-fit:contain;" />`
+      : "My Store";
+
   return `
 <!DOCTYPE html>
 <html>
@@ -82,7 +91,7 @@ font-weight:bold;
 "
 >
 
-${shopName}
+${headerContent}
 
 </td>
 
@@ -192,7 +201,9 @@ export async function sendBackInStockEmail({ to, shopSettings, product }) {
   }
 
   const html = buildEmailTemplate({
-    shopName: shopSettings.storeName || "My Store",
+    shopName: shopSettings.storeName,
+
+    logoUrl: shopSettings.logo,
 
     brandColor: shopSettings.primaryColor,
 
@@ -212,7 +223,12 @@ export async function sendBackInStockEmail({ to, shopSettings, product }) {
   });
 
   let fromEmail = (shopSettings.senderEmail || "").trim();
-  if (!fromEmail || /@(gmail\.com|yahoo\.com|hotmail\.com|outlook\.com|icloud\.com|aol\.com)$/i.test(fromEmail)) {
+  if (
+    !fromEmail ||
+    /@(gmail\.com|yahoo\.com|hotmail\.com|outlook\.com|icloud\.com|aol\.com)$/i.test(
+      fromEmail,
+    )
+  ) {
     fromEmail = "onboarding@resend.dev";
   }
 

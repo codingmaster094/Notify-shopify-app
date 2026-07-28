@@ -106,7 +106,7 @@ const FIELD_DEFAULTS = {
   senderName: "",
   senderEmail: "",
   metaAccessToken: "",
-  metaPhoneNumberId: "",
+  metaPhoneNumberId: "1100978533109619",
   metaApiVersion: "v22.0",
 };
 

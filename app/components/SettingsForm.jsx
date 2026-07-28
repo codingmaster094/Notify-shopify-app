@@ -72,8 +72,7 @@ const SETTINGS_SECTIONS = [
   {
     key: "whatsapp",
     title: "WhatsApp notifications",
-    description:
-      "Optional Meta Cloud API credentials for WhatsApp delivery.",
+    description: "Optional Meta Cloud API credentials for WhatsApp delivery.",
     fields: [
       {
         name: "metaAccessToken",
@@ -124,9 +123,7 @@ const getInitialValues = (settings) => {
 /** Collect every field `name` that should be submitted as form data. */
 const getFormFieldNames = () =>
   SETTINGS_SECTIONS.flatMap((s) =>
-    s.fields
-      .filter((f) => f.type !== "logoUpload")
-      .map((f) => f.name)
+    s.fields.filter((f) => f.type !== "logoUpload").map((f) => f.name),
   );
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -134,12 +131,14 @@ const getFormFieldNames = () =>
 export default function SettingsForm({
   settings,
   success = false,
+  error = "",
   submitting = false,
 }) {
   const [values, setValues] = useState(() => getInitialValues(settings));
   const [logoPreview, setLogoPreview] = useState(settings?.logo || "");
   const [selectedLogoName, setSelectedLogoName] = useState("");
   const [showSuccess, setShowSuccess] = useState(success);
+  const [showError, setShowError] = useState(Boolean(error));
   const logoFileInput = useRef(null);
 
   useEffect(() => {
@@ -149,6 +148,7 @@ export default function SettingsForm({
   }, [settings]);
 
   useEffect(() => setShowSuccess(success), [success]);
+  useEffect(() => setShowError(Boolean(error)), [error]);
 
   useEffect(() => {
     return () => {
@@ -241,11 +241,7 @@ export default function SettingsForm({
       {selectedLogoName && <Text as="p">Selected: {selectedLogoName}</Text>}
 
       {logoPreview && (
-        <InlineStack
-          align="space-between"
-          blockAlign="center"
-          wrap={false}
-        >
+        <InlineStack align="space-between" blockAlign="center" wrap={false}>
           <InlineStack gap="300" blockAlign="center" wrap={false}>
             <Box
               padding="200"
@@ -322,13 +318,16 @@ export default function SettingsForm({
             </Banner>
           )}
 
+          {showError && (
+            <Banner tone="critical" onDismiss={() => setShowError(false)}>
+              Logo upload failed: {error}
+            </Banner>
+          )}
+
           <Card>
             <BlockStack gap="400">
               {SETTINGS_SECTIONS.map((section, index) =>
-                renderSection(
-                  section,
-                  index === SETTINGS_SECTIONS.length - 1
-                )
+                renderSection(section, index === SETTINGS_SECTIONS.length - 1),
               )}
 
               <InlineStack align="end">

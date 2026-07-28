@@ -84,6 +84,7 @@ export async function loadShopSettings(shop, admin) {
  */
 export async function saveShopSettings(shop, formData, admin) {
   const currentSettings = await ensureShopSettings(shop);
+  let logoUploadError = null;
 
   const data = {
     storeName: formData.get("storeName")?.trim() || "",
@@ -209,10 +210,13 @@ export async function saveShopSettings(shop, formData, admin) {
       console.warn("Logo upload failed:", err);
       // Do not erase the current logo if the replacement upload fails.
       data.logo = currentSettings.logo || "";
+      logoUploadError =
+        err instanceof Error ? err.message : "Could not upload the logo.";
     }
   }
 
-  return await updateShopSettings(shop, data);
+  const settings = await updateShopSettings(shop, data);
+  return { settings, logoUploadError };
 }
 
 /**

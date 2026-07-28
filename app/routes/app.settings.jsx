@@ -1,9 +1,6 @@
 import { useLoaderData, useActionData, useNavigation } from "react-router";
 import { authenticate } from "../shopify.server";
-import {
-  loadShopSettings,
-  saveShopSettings,
-} from "../services/shop.server";
+import { loadShopSettings, saveShopSettings } from "../services/shop.server";
 
 import SettingsForm from "../components/SettingsForm";
 
@@ -18,10 +15,11 @@ export async function action({ request }) {
 
   const formData = await request.formData();
 
-  await saveShopSettings(session.shop, formData, admin);
+  const result = await saveShopSettings(session.shop, formData, admin);
 
   return {
-    success: true,
+    success: !result.logoUploadError,
+    error: result.logoUploadError,
   };
 }
 
@@ -34,6 +32,7 @@ export default function SettingsPage() {
     <SettingsForm
       settings={settings}
       success={action?.success}
+      error={action?.error}
       submitting={navigation.state === "submitting"}
     />
   );

@@ -63,6 +63,7 @@ export const action = async ({ request }) => {
           metaAccessToken: shopSettings?.metaAccessToken,
           metaPhoneNumberId: shopSettings?.metaPhoneNumberId,
           metaApiVersion: shopSettings?.metaApiVersion,
+          shopSettings,
         });
 
         await prisma.notifyRequest.update({

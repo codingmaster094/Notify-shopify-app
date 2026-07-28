@@ -170,6 +170,7 @@ export async function sendBackInStockNotifications({
   metaAccessToken,
   metaPhoneNumberId,
   metaApiVersion,
+  shopSettings,
 }) {
   const enabledChannels = [];
 
@@ -189,6 +190,7 @@ export async function sendBackInStockNotifications({
         comparePrice,
         currency,
         senderEmail,
+        shopSettings,
       );
 
       enabledChannels.push("email");

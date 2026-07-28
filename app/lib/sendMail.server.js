@@ -39,9 +39,14 @@ export async function sendBackInStockEmail(
   comparePrice,
   currency,
   senderEmail,
+  shopSettings,
 ) {
   const showCompare =
     comparePrice && comparePrice !== "" && comparePrice !== price;
+
+  const storeName = shopSettings?.storeName || "My Store";
+  const brandColor = shopSettings?.primaryColor || "#111827";
+  const logoUrl = shopSettings?.logo || "";
 
   const html = `
   <div style="margin:0;padding:40px;background:#f5f5f5;font-family:Arial,sans-serif;">
@@ -49,15 +54,16 @@ export async function sendBackInStockEmail(
       style="background:#ffffff;border-radius:12px;overflow:hidden;">
 
       <tr>
+        <td style="background:${brandColor};padding:24px;text-align:center;color:#fff;font-size:22px;font-weight:bold;">
+          ${logoUrl ? `<img src="${logoUrl}" width="120" style="display:block;margin:0 auto 10px;max-height:50px;object-fit:contain;" />` : ""}
+          ${storeName}
+        </td>
+      </tr>
+
+      <tr>
         <td style="padding:35px;text-align:center;">
 
-          <img
-  src="https://www.ellitee.com/cdn/shop/files/logo.svg?v=1778758978&width=120"
-  width="140"
-  style="margin-bottom:20px;display:block;margin-left:auto;margin-right:auto;"
-/>
-
-<h1 style="margin:0;font-size:28px;">
+<h1 style="margin:0 0 8px;font-size:28px;">
   Back In Stock!
 </h1>
 
@@ -126,7 +132,7 @@ export async function sendBackInStockEmail(
             href="${productUrl}"
             style="
               display:inline-block;
-              background:#111;
+              background:${brandColor};
               color:#fff;
               padding:15px 35px;
               border-radius:8px;

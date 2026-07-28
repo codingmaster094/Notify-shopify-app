@@ -1,4 +1,4 @@
-import { sendBackInStockEmail } from "./sendMail.server";
+import { sendBackInStockEmail } from "./sendMail.server.js";
 
 function normalizePhoneNumber(phoneNumber) {
   const value = (phoneNumber || "").trim();
@@ -42,17 +42,32 @@ async function sendMetaWhatsAppMessage({
 
   const url = `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`;
   const templateName = (process.env.META_WHATSAPP_TEMPLATE_NAME || "back_in_stock").trim();
-  const templateLang = (process.env.META_WHATSAPP_TEMPLATE_LANG || "en").trim();
+  const templateLang = (process.env.META_WHATSAPP_TEMPLATE_LANG || "en_US").trim();
+
+  let buttonParam = "products";
+  if (productUrl) {
+    try {
+      const parsed = new URL(productUrl);
+      buttonParam = parsed.pathname.replace(/^\//, "") || "products";
+    } catch {
+      buttonParam = productUrl;
+    }
+  }
 
   const components = [];
   if (productTitle) {
     components.push({
       type: "body",
-      parameters: [
-        { type: "text", text: productTitle },
-      ],
+      parameters: [{ type: "text", text: productTitle }],
     });
   }
+
+  components.push({
+    type: "button",
+    sub_type: "url",
+    index: "0",
+    parameters: [{ type: "text", text: buttonParam }],
+  });
 
   const templatePayload = {
     messaging_product: "whatsapp",
@@ -63,7 +78,7 @@ async function sendMetaWhatsAppMessage({
       language: {
         code: templateLang,
       },
-      ...(components.length > 0 ? { components } : {}),
+      components,
     },
   };
 
@@ -80,16 +95,20 @@ async function sendMetaWhatsAppMessage({
 
   let json = await response.json();
 
-  // If template fails (e.g. template does not exist), fallback to freeform text message
-  if (!response.ok) {
-    console.warn(`Template message failed (${json?.error?.message}). Falling back to text message...`);
+  // If button parameter is rejected or not matching, retry without button component
+  if (!response.ok && json?.error?.code === 131008) {
+    const fallbackComponents = productTitle
+      ? [{ type: "body", parameters: [{ type: "text", text: productTitle }] }]
+      : [];
 
-    const textPayload = {
+    const retryPayload = {
       messaging_product: "whatsapp",
       to,
-      type: "text",
-      text: { 
-        body, 
+      type: "template",
+      template: {
+        name: templateName,
+        language: { code: templateLang },
+        ...(fallbackComponents.length > 0 ? { components: fallbackComponents } : {}),
       },
     };
 
@@ -99,7 +118,7 @@ async function sendMetaWhatsAppMessage({
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(textPayload),
+      body: JSON.stringify(retryPayload),
     });
 
     json = await response.json();

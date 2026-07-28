@@ -1,5 +1,5 @@
 // notify-me\app\lib\sendMail.server.js
-import { resend } from "./resend.server";
+import { resend } from "./resend.server.js";
 
 function currencySymbol(code) {
   switch (code) {

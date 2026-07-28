@@ -16,13 +16,21 @@ function currencySymbol(code) {
   }
 }
 
-
 function getValidFromEmail(senderEmail) {
-  const candidate = (senderEmail || process.env.SENDER_EMAIL || process.env.RESEND_ACCOUNT_EMAIL || process.env.RESEND_FROM || "").trim();
-  
+  const candidate = (
+    senderEmail ||
+    process.env.SENDER_EMAIL ||
+    process.env.RESEND_ACCOUNT_EMAIL ||
+    process.env.RESEND_FROM ||
+    ""
+  ).trim();
+
   // Public webmail domains cannot be used as Resend 'from' address
-  const isPublicDomain = /@(gmail\.com|yahoo\.com|hotmail\.com|outlook\.com|icloud\.com|aol\.com)$/i.test(candidate);
-  
+  const isPublicDomain =
+    /@(gmail\.com|yahoo\.com|hotmail\.com|outlook\.com|icloud\.com|aol\.com)$/i.test(
+      candidate,
+    );
+
   if (!candidate || isPublicDomain) {
     return "onboarding@resend.dev";
   }
@@ -63,9 +71,9 @@ export async function sendBackInStockEmail(
       <tr>
         <td style="padding:35px;text-align:center;">
 
-<h1 style="margin:0 0 8px;font-size:28px;">
-  Back In Stock!
-</h1>
+          <h1 style="margin:0 0 8px;font-size:28px;">
+            Back In Stock!
+          </h1>
 
           <p style="margin:12px 0 30px;color:#666;">
             Great news! The product you requested is available again.
@@ -76,7 +84,7 @@ export async function sendBackInStockEmail(
               ? `
           <img
             src="${productImage}"
-            width="280"
+            width="150"
             style="border-radius:12px;margin-bottom:25px;"
           />
           `
@@ -176,7 +184,9 @@ export async function sendBackInStockEmail(
 
   // If custom domain fails due to unverified domain error, retry with onboarding@resend.dev
   if (error && fromEmail !== "onboarding@resend.dev") {
-    console.warn(`Resend email with '${fromEmail}' failed (${error.message}). Retrying with 'onboarding@resend.dev'...`);
+    console.warn(
+      `Resend email with '${fromEmail}' failed (${error.message}). Retrying with 'onboarding@resend.dev'...`,
+    );
     fromEmail = "onboarding@resend.dev";
     const retryResult = await resend.emails.send({
       from: fromEmail,

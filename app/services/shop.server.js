@@ -6,6 +6,34 @@ import {
 
 import { graphql } from "../lib/shopify.server";
 
+const delay = (milliseconds) =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+async function waitForLogoUrl(admin, fileId) {
+  const query = `#graphql
+    query logoFile($id: ID!) {
+      node(id: $id) {
+        ... on MediaImage {
+          fileStatus
+          image { url }
+        }
+      }
+    }
+  `;
+
+  // Shopify processes newly created files asynchronously. In normal cases the
+  // CDN URL is ready within a few seconds, so wait before saving settings.
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const result = await graphql(admin, query, { id: fileId });
+    const logoUrl = result?.node?.image?.url;
+    if (logoUrl) return logoUrl;
+
+    await delay(750);
+  }
+
+  return "";
+}
+
 /**
  * Load settings for current shop and dynamically fetch shop details if default
  */
@@ -172,6 +200,7 @@ export async function saveShopSettings(shop, formData, admin) {
           fileCreate(files: $files) {
             files {
               id
+              fileStatus
               ... on MediaImage {
                 image { url }
               }
@@ -200,7 +229,10 @@ export async function saveShopSettings(shop, formData, admin) {
         );
       }
 
-      const uploadedLogoUrl = fileCreate?.files?.[0]?.image?.url;
+      const uploadedFile = fileCreate?.files?.[0];
+      const uploadedLogoUrl =
+        uploadedFile?.image?.url ||
+        (uploadedFile?.id ? await waitForLogoUrl(admin, uploadedFile.id) : "");
       if (!uploadedLogoUrl) {
         throw new Error("Shopify did not return a logo URL.");
       }

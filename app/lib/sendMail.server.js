@@ -121,7 +121,7 @@ export async function sendBackInStockEmail(
             style="
               display:inline-block;
               background:${brandColor};
-              color:#fff;
+              color:#000000;
               padding:14px 32px;
               border-radius:9px;
               text-decoration:none;
